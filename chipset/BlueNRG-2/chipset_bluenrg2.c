@@ -12,17 +12,17 @@ int step;
 #define CONFIG_DATA_LL_WITHOUT_HOST         (0x2C) /**< Switch on/off Link Layer only mode. Set to 1 to disable Host. */
 #define CONFIG_DATA_LL_WITHOUT_HOST_LEN     (1)
 
-static int bluenrg2_config_without_host() 
-{   
+static int bluenrg2_config_without_host()
+{
     uint8_t cmd_buffer[CONFIG_DATA_LL_WITHOUT_HOST_LEN + 2];
     struct net_buf *buf;
 
-    cmd_buffer[0] = CONFIG_DATA_LL_WITHOUT_HOST;                //offset 
+    cmd_buffer[0] = CONFIG_DATA_LL_WITHOUT_HOST;                //offset
     cmd_buffer[1] = CONFIG_DATA_LL_WITHOUT_HOST_LEN;            //config len
     cmd_buffer[2] = 1;                                          //Set to 1 to disable Host
 
-    uint16_t ogf = 0x3f;, ocf = 0x00c;
-    uint16_t opcode = (uint16_t)((ocf & 0x03ff)|(ogf << 10))
+    uint16_t ogf = 0x3f, ocf = 0x00c;
+    uint16_t opcode = (uint16_t)((ocf & 0x03ff)|(ogf << 10));
 
     buf = bt_hci_cmd_create(opcode, sizeof(cmd_buffer));
     if (!buf)
@@ -44,19 +44,19 @@ static int bluenrg2_config_without_host()
 #define CONFIG_DATA_PUBADDR_OFFSET          (0x00) /**< Bluetooth public address */
 #define CONFIG_DATA_PUBADDR_LEN             (6)
 
-static int bluenrg2_config_set_public_addr() 
+static int bluenrg2_config_set_public_addr()
 {
     //uint8_t cmd_buffer[258];
     uint8_t cmd_buffer[CONFIG_DATA_PUBADDR_LEN + 2];
     struct net_buf *buf;
     bt_addr_t addr = BLE_MAC_ADDR;
 
-    cmd_buffer[0] = CONFIG_DATA_PUBADDR_OFFSET;                 //offset 
+    cmd_buffer[0] = CONFIG_DATA_PUBADDR_OFFSET;                 //offset
     cmd_buffer[1] = CONFIG_DATA_PUBADDR_LEN;                    //config len
-    memcpy(cmd_buffer + 2, add.val, CONFIG_DATA_PUBADDR_LEN);   // addr
+    memcpy(cmd_buffer + 2, addr.val, CONFIG_DATA_PUBADDR_LEN);   // addr
 
-    uint16_t ogf = 0x3f;, ocf = 0x00c;
-    uint16_t opcode = (uint16_t)((ocf & 0x03ff)|(ogf << 10))
+    uint16_t ogf = 0x3f, ocf = 0x00c;
+    uint16_t opcode = (uint16_t)((ocf & 0x03ff)|(ogf << 10));
 
     buf = bt_hci_cmd_create(opcode, sizeof(cmd_buffer));
     if (!buf)
@@ -107,11 +107,11 @@ static int bluenrg2_set_tx_power_level(uint8_t En_High_Power, uint8_t PA_Level)
     uint8_t cmd_buffer[2];
     struct net_buf *buf;
 
-    cmd_buffer[0] = En_High_Power;      //En_High_Power 
+    cmd_buffer[0] = En_High_Power;      //En_High_Power
     cmd_buffer[1] = PA_Level;           //config PA_Level
 
-    uint16_t ogf = 0x3f;, ocf = 0x00c;
-    uint16_t opcode = (uint16_t)((ocf & 0x03ff)|(ogf << 10))
+    uint16_t ogf = 0x3f, ocf = 0x00c;
+    uint16_t opcode = (uint16_t)((ocf & 0x03ff)|(ogf << 10));
 
     buf = bt_hci_cmd_create(opcode, sizeof(cmd_buffer));
     if (!buf)
@@ -126,8 +126,8 @@ static int bluenrg2_set_tx_power_level(uint8_t En_High_Power, uint8_t PA_Level)
 
 static int  bluenrg2_gatt_init(void)
 {
-    uint16_t ogf = 0x3f;, ocf = 0x101;
-    uint16_t opcode = (uint16_t)((ocf & 0x03ff)|(ogf << 10))
+    uint16_t ogf = 0x3f, ocf = 0x101;
+    uint16_t opcode = (uint16_t)((ocf & 0x03ff)|(ogf << 10));
 
     return bt_hci_cmd_send(opcode, NULL);
 }
@@ -166,10 +166,10 @@ static int  bluenrg2_gatt_init(void)
  * @param[out] Appearance_Char_Handle Appearance Characteristic handle
  * @retval Value indicating success or error code.
  */
-#define GAP_PERIPHERAL_ROLE						(0x01)
-#define GAP_BROADCASTER_ROLE					(0x02)
-#define GAP_CENTRAL_ROLE						(0x04)
-#define GAP_OBSERVER_ROLE						(0x08)
+#define GAP_PERIPHERAL_ROLE                     (0x01)
+#define GAP_BROADCASTER_ROLE                    (0x02)
+#define GAP_CENTRAL_ROLE                        (0x04)
+#define GAP_OBSERVER_ROLE                       (0x08)
 #define privacy_enabled                         (0x00)
 #define device_name_char_len                    (0x08)
 
@@ -182,8 +182,8 @@ static int bluenrg2_gap_init()
     cmd_buffer[1] = privacy_enabled;        //privacy
     cmd_buffer[2] = device_name_char_len;   //device_name_char_len
 
-    uint16_t ogf = 0x3f;, ocf = 0x08a;
-    uint16_t opcode = (uint16_t)((ocf & 0x03ff)|(ogf << 10))
+    uint16_t ogf = 0x3f, ocf = 0x08a;
+    uint16_t opcode = (uint16_t)((ocf & 0x03ff)|(ogf << 10));
 
     buf = bt_hci_cmd_create(opcode, sizeof(cmd_buffer));
     if (!buf)
@@ -209,17 +209,17 @@ void boot_start(void) {
 
 void prepare_start(void) {
     state = STATE_POLLING_PREPARING;
-    step = 1; 
+    step = 1;
     // step 1 close host
-    bluenrg2_config_without_host(); // It can be written only if aci_hal_write_config_data() is the first command after reset. 
+    bluenrg2_config_without_host(); // It can be written only if aci_hal_write_config_data() is the first command after reset.
 }
 
-void event_process(uint8_t event, struct net_buf *buf) 
+void event_process(uint8_t event, struct net_buf *buf)
 {
     if(state == STATE_POLLING_PREPARING) // boot do nothing
     {
         if ((event == BT_HCI_EVT_VENDOR) ||
-            (event == BT_HCI_EVT_CMD_COMPLETE))  // 
+            (event == BT_HCI_EVT_CMD_COMPLETE))  //
         {
             switch (step)
             {
