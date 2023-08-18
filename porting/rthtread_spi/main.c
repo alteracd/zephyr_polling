@@ -1,9 +1,18 @@
+/*
+ * Copyright (c) 2006-2021, RT-Thread Development Team
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Change Logs:
+ * Date           Author       Notes
+ * 2023-08-09     YTR       the first version
+ */
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <rtthread.h>
 
-#include "rtthread_driver_serial.h"
+#include "rtthread_driver_spi.h"
 
 #include "chipset_interface.h"
 #include "platform_interface.h"
@@ -22,27 +31,26 @@ extern void app_polling_work(void);
 
 int bt_init_hci_driver(void)
 {
-    bt_uart_interface_t *p_interface = NULL;
-    uint8_t com_num;
+    rt_kprintf("bt_init_hci_driver \r\n");
 
-    p_interface = (bt_uart_interface_t *)bt_chipset_get_uart_interface();
-    bt_uart_interface_t tmp = {0, 0, 0, 0, 0};
-    tmp.rate = PKG_ZEPHYR_POLLING_HCI_UART_BAUDRATE;
-    tmp.databits = p_interface->databits;
-    tmp.stopbits = p_interface->stopbits;
-    tmp.parity = p_interface->parity;
-#ifdef PKG_ZEPHYR_POLLING_HCI_UART_BAUDRATE_FLOWCONTROL
-    tmp.flowcontrol = 1;
-#endif
-    
-    com_num = PKG_ZEPHYR_POLLING_HCI_UART_INDEX;
+//    HCI_TL_SPI_Init(NULL); // RT SPI 初始化
+//    HCI_HAL_SPI_Init(NULL); //hal库SPI初始化
+//    HCI_TL_SPI_Reset(); //管脚 reset
 
-    if (bt_hci_init_serial_device(com_num, tmp.rate, tmp.databits, tmp.stopbits,
-                           tmp.parity, tmp.flowcontrol) < 0)
-    {
-        printk("Error, SPi open failed.");
-        return -1;
-    }
+    // send_cmd(0x03, 0x003, 0, 0x00); //reset 发送
+
+    // uint16_t size = 16;
+    // uint8_t dataBuff[16];
+    // for (int i = 0; i < 4; ++i) {
+    //     int dataLen = HCI_TL_SPI_Receive(dataBuff, size); // 锟斤拷锟斤拷
+    //     rt_kprintf("Recv size: %d buffer: %02x", dataLen, dataBuff[0]);
+    //     for (int i = 1; i < dataLen; ++i) {
+    //         rt_kprintf("%02x", dataBuff[i]);
+    //     }
+    //     rt_kprintf("\r\n");
+    // }
+
+    hci_driver_h4_init();
 
     return 0;
 }
@@ -51,6 +59,8 @@ int bt_init_hci_driver(void)
 void zephyr_polling_main(void* parameter)
 {
     int err = 0;
+
+    rt_kprintf("zephyr_polling_main \r\n");
 
     bt_log_impl_register(bt_log_impl_local_instance());
 
@@ -91,8 +101,8 @@ void zephyr_polling_main(void* parameter)
 
         app_polling_work();
 
-        extern void bt_hci_h4_polling(void);
-        bt_hci_h4_polling();
+        extern void hci_driver_h4_init_loop(void);
+        hci_driver_h4_init_loop();
 
         // rt_thread_yield();
         rt_thread_delay(1);
@@ -102,6 +112,8 @@ void zephyr_polling_main(void* parameter)
 int zephyr_polling_init(void)
 {
     static rt_thread_t tid = RT_NULL;
+
+    rt_kprintf("zephyr_polling_init \r\n");
 
     tid = rt_thread_create("zephyr_polling_main",
                             zephyr_polling_main, RT_NULL,
@@ -115,4 +127,25 @@ int zephyr_polling_init(void)
     return 0;
 }
 // INIT_APP_EXPORT(zephyr_polling_init);
-MSH_CMD_EXPORT(zephyr_polling_init, "zephyr_polling start spi");
+MSH_CMD_EXPORT(zephyr_polling_init, "SPI start");
+
+
+static int zephyr(void) {
+
+    static rt_thread_t tid = RT_NULL;
+
+    rt_kprintf("zephyr_polling_init \r\n");
+
+    tid = rt_thread_create("zephyr_polling_main",
+                                zephyr_polling_main, RT_NULL,
+                                4096,
+                                5, 5);
+    if (tid != RT_NULL)
+    {
+        rt_thread_startup(tid);
+    }
+
+    return 0;
+}
+MSH_CMD_EXPORT(zephyr, "zephyr_polling_init sample");
+
