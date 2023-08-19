@@ -1,6 +1,16 @@
+/*
+ * Copyright (c) 2006-2021, RT-Thread Development Team
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Change Logs:
+ * Date           Author       Notes
+ * 2023-08-18     YTR       the first version
+ */
 #include <errno.h>
 
 #include "chipset_bluenrg2.h"
+#include <logging/bt_log_impl.h>
 
 #define STATE_POLLING_NONE      0
 #define STATE_POLLING_BOOTING   1
@@ -32,7 +42,6 @@ static int bluenrg2_config_without_host()
     net_buf_add_mem(buf, cmd_buffer, sizeof(cmd_buffer));
 
     return bt_hci_cmd_send(opcode, buf);
-
 }
 
 #define BLE_MAC_ADDR                                                                               \
@@ -110,7 +119,7 @@ static int bluenrg2_set_tx_power_level(uint8_t En_High_Power, uint8_t PA_Level)
     cmd_buffer[0] = En_High_Power;      //En_High_Power
     cmd_buffer[1] = PA_Level;           //config PA_Level
 
-    uint16_t ogf = 0x3f, ocf = 0x00c;
+    uint16_t ogf = 0x3f, ocf = 0x00f;
     uint16_t opcode = (uint16_t)((ocf & 0x03ff)|(ogf << 10));
 
     buf = bt_hci_cmd_create(opcode, sizeof(cmd_buffer));
@@ -205,6 +214,7 @@ void init_work(void){
 void boot_start(void) {
     state = STATE_POLLING_BOOTING;
     // nothing to do
+    bt_hci_set_boot_ready();          //finish boot
 }
 
 void prepare_start(void) {
@@ -218,9 +228,10 @@ void event_process(uint8_t event, struct net_buf *buf)
 {
     if(state == STATE_POLLING_PREPARING) // boot do nothing
     {
-        if ((event == BT_HCI_EVT_VENDOR) ||
-            (event == BT_HCI_EVT_CMD_COMPLETE))  //
+        if (event == BT_HCI_EVT_CMD_COMPLETE)  //only complete
         {
+            printk("event_process, step: %d\n", step);
+
             switch (step)
             {
             case 1: //close host just now
