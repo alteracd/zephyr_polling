@@ -1,12 +1,3 @@
-/*
- * Copyright (c) 2006-2021, RT-Thread Development Team
- *
- * SPDX-License-Identifier: Apache-2.0
- *
- * Change Logs:
- * Date           Author       Notes
- * 2023-08-18     YTR       the first version
- */
 #include <errno.h>
 
 #include "chipset_bluenrg2.h"
@@ -202,8 +193,6 @@ static int bluenrg2_gap_init()
     net_buf_add_mem(buf, cmd_buffer, sizeof(cmd_buffer));
 
     return bt_hci_cmd_send(opcode, buf);
-
-    // Service_Handle  Dev_Name_Char_Handle  Appearance_Char_Handle seems to be local variables? useless?
 }
 
 void init_work(void){
@@ -230,8 +219,7 @@ void event_process(uint8_t event, struct net_buf *buf)
     {
         if (event == BT_HCI_EVT_CMD_COMPLETE)  //only complete
         {
-            printk("event_process, step: %d\n", step);
-
+            printk("prepare_event_process, step: %d\n", step);
             switch (step)
             {
             case 1: //close host just now
@@ -259,12 +247,11 @@ void event_process(uint8_t event, struct net_buf *buf)
     }
 }
 
-
 static const struct bt_hci_chipset_driver chipset_drv = {
         init_work, boot_start, prepare_start, event_process,
 };
 
-// public API
+// public drv API
 const struct bt_hci_chipset_driver *bt_hci_chipset_impl_local_instance(void)
 {
     return &chipset_drv;

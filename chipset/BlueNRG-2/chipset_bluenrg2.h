@@ -1,4 +1,3 @@
-
 #ifndef _CHIPSET_BLUENRG2_H_
 #define _CHIPSET_BLUENRG2_H_
 
